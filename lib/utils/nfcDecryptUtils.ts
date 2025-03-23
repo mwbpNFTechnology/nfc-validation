@@ -80,8 +80,8 @@ export function calculateSdmmac(
   const sv2Header = Buffer.from([0x3C, 0xC3, 0x00, 0x01, 0x00, 0x80]);
   let sv2Stream = Buffer.concat([sv2Header, piccData]);
   sv2Stream = padBuffer(sv2Stream);
-  const c2 = Buffer.from(aesCmac(sdmFileReadKey, sv2Stream), 'hex') as Buffer;
-  const sdmmacTmp = Buffer.from(aesCmac(c2, inputBuf), 'hex') as Buffer;
+  const c2 = Buffer.from(aesCmac(sdmFileReadKey, sv2Stream), 'hex');
+  const sdmmacTmp = Buffer.from(aesCmac(c2, inputBuf), 'hex');
   const macDigest: number[] = [];
   for (let i = 0; i < 16; i++) {
     if (i % 2 === 1) {
@@ -110,37 +110,13 @@ export function decryptFileData(
   sv1Stream = padBuffer(sv1Stream);
   const kSesSdmFileReadEnc = Buffer.from(aesCmac(sdmFileReadKey, sv1Stream), 'hex');
   const ivPlain = Buffer.concat([readCtr, Buffer.alloc(13, 0x00)]);
-  
   const ecbCipher = createCipheriv("aes-128-ecb", kSesSdmFileReadEnc, null);
   ecbCipher.setAutoPadding(false);
-  const updateIv = ecbCipher.update(ivPlain);
-  const finalIv = ecbCipher.final();
-  const ive = Buffer.concat([Buffer.from(updateIv), Buffer.from(finalIv)]).slice(0, 16);
-  
+  const ive = Buffer.concat([ecbCipher.update(ivPlain), ecbCipher.final()]).slice(0, 16);
   const decipher = createDecipheriv("aes-128-cbc", kSesSdmFileReadEnc, ive);
   decipher.setAutoPadding(false);
-  const updateDec = decipher.update(encFileData);
-  const finalDec = decipher.final();
-  const decrypted = Buffer.concat([Buffer.from(updateDec), Buffer.from(finalDec)]);
+  const decrypted = Buffer.concat([decipher.update(encFileData), decipher.final()]);
   return decrypted;
-}
-
-/**
- * Helper to convert a Buffer into a new Buffer with proper generic type.
- * This helps resolve type issues with cipher output.
- */
- function toProperBuffer(buf: Buffer): Buffer {
-  return Buffer.from(buf.buffer as ArrayBuffer, buf.byteOffset, buf.byteLength);
-}
-
-/* --- Interface for the Decrypted Message --- */
-export interface DecryptedSunMessage {
-  piccDataTag: string;
-  uid: string;
-  readCtr: number | null;
-  fileDataHex: string | null;
-  fileDataDecoded: string | null;
-  encryptionMode: string;
 }
 
 /**
@@ -160,14 +136,11 @@ export function decryptSunMessage(
   piccEncData: Buffer,
   sdmmac: Buffer,
   encFileData: Buffer | null = null
-): DecryptedSunMessage {
+): any {
   const ivZero = Buffer.alloc(16, 0x00);
   const decipher = createDecipheriv("aes-128-cbc", sdmMetaReadKey, ivZero);
   decipher.setAutoPadding(false);
-  
-  const updateData = toProperBuffer(decipher.update(piccEncData));
-  const finalData = toProperBuffer(decipher.final());
-  const plaintext = Buffer.concat([updateData, finalData]);
+  const plaintext = Buffer.concat([decipher.update(piccEncData), decipher.final()]);
   
   let offset = 0;
   const piccDataTag = plaintext.slice(offset, offset + 1);
@@ -241,7 +214,7 @@ export function decryptNfcMessage(
   sdmMetaReadKey: Buffer,
   sdmFileReadKeyCallable: (uid: Buffer) => Buffer,
   paramMode: string = "SEPARATED"
-): DecryptedSunMessage {
+): any {
   const piccEncData = Buffer.from(piccDataHex, "hex");
   const encFileData = Buffer.from(encHex, "hex");
   const sdmmac = Buffer.from(cmacHex, "hex");
