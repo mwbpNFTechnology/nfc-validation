@@ -125,6 +125,14 @@ export function decryptFileData(
   return decrypted;
 }
 
+/**
+ * Helper to convert a Buffer into a new Buffer with proper generic type.
+ * This helps resolve type issues with cipher output.
+ */
+function toProperBuffer(buf: Buffer): Buffer {
+  return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
+}
+
 /* --- Interface for the Decrypted Message --- */
 export interface DecryptedSunMessage {
   piccDataTag: string;
@@ -157,9 +165,8 @@ export function decryptSunMessage(
   const decipher = createDecipheriv("aes-128-cbc", sdmMetaReadKey, ivZero);
   decipher.setAutoPadding(false);
   
-  // Force the outputs to be a Buffer with the expected generic type.
-  const updateData = decipher.update(piccEncData) as unknown as Buffer;
-  const finalData = decipher.final() as unknown as Buffer;
+  const updateData = toProperBuffer(decipher.update(piccEncData));
+  const finalData = toProperBuffer(decipher.final());
   const plaintext = Buffer.concat([updateData, finalData]);
   
   let offset = 0;
