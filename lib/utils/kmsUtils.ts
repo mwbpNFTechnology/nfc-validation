@@ -55,7 +55,6 @@ export async function decryptText(encryptedText: string): Promise<string> {
   // Convert the decrypted Buffer to a UTF-8 string.
   const decryptedString = Buffer.from(decryptResult.Plaintext!).toString('utf8');
 
-  console.log("decryptedString: ", decryptedString);
 
   // Parse the JSON payload and return the "message" field.
   // This assumes the decrypted JSON has the structure: { "message": "...", "nonce": "..." }
