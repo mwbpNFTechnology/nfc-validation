@@ -8,6 +8,16 @@ const DIV_CONST3 = Buffer.from("446976426173654B6579", "hex");
 const SDMMAC_PARAM = "cmac";
 const AES_BLOCK_SIZE = 16;
 
+/* --- Interface for Decrypted Message --- */
+interface DecryptedSunMessage {
+  piccDataTag: string;
+  uid: string;
+  readCtr: number | null;
+  fileDataHex: string | null;
+  fileDataDecoded: string | null;
+  encryptionMode: string;
+}
+
 /* --- Helper Functions --- */
 
 /**
@@ -136,7 +146,7 @@ export function decryptSunMessage(
   piccEncData: Buffer,
   sdmmac: Buffer,
   encFileData: Buffer | null = null
-): any {
+): DecryptedSunMessage {
   const ivZero = Buffer.alloc(16, 0x00);
   const decipher = createDecipheriv("aes-128-cbc", sdmMetaReadKey, ivZero);
   decipher.setAutoPadding(false);
@@ -214,7 +224,7 @@ export function decryptNfcMessage(
   sdmMetaReadKey: Buffer,
   sdmFileReadKeyCallable: (uid: Buffer) => Buffer,
   paramMode: string = "SEPARATED"
-): any {
+): DecryptedSunMessage {
   const piccEncData = Buffer.from(piccDataHex, "hex");
   const encFileData = Buffer.from(encHex, "hex");
   const sdmmac = Buffer.from(cmacHex, "hex");
