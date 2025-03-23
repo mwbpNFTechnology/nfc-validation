@@ -3,11 +3,14 @@ import { aesCmac } from 'node-aes-cmac';
 
 /* --- Conversion Helper --- */
 /**
- * Converts a Node.js Buffer (typed as Buffer<ArrayBufferLike>) into one typed as Buffer<ArrayBuffer>.
+ * Converts a Node.js Buffer (which may be backed by a SharedArrayBuffer)
+ * into a Buffer whose underlying type is ArrayBuffer.
  */
 function toABuffer(buf: Buffer): Buffer<ArrayBuffer> {
-  const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-  return Buffer.from(ab);
+  const uint8 = new Uint8Array(buf);
+  const newArrayBuffer = new ArrayBuffer(uint8.length);
+  new Uint8Array(newArrayBuffer).set(uint8);
+  return Buffer.from(newArrayBuffer);
 }
 
 /* --- Constants --- */
