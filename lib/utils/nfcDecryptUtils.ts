@@ -11,7 +11,7 @@ function toABuffer(buf: Buffer): Buffer<ArrayBuffer> {
 }
 
 /* --- Constants --- */
-const DIV_CONST2 = toABuffer(Buffer.from("536c6F744D61737465724B6579", "hex"));
+// const DIV_CONST2 = toABuffer(Buffer.from("536c6F744D61737465724B6579", "hex"));
 const DIV_CONST3 = toABuffer(Buffer.from("446976426173654B6579", "hex"));
 
 const SDMMAC_PARAM = "cmac";
