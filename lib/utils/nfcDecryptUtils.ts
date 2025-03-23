@@ -157,9 +157,10 @@ export function decryptSunMessage(
   const decipher = createDecipheriv("aes-128-cbc", sdmMetaReadKey, ivZero);
   decipher.setAutoPadding(false);
   
-  const updateData = decipher.update(piccEncData);
-  const finalData = decipher.final();
-  const plaintext = Buffer.concat([Buffer.from(updateData), Buffer.from(finalData)]);
+  // Force the outputs to be a Buffer with the expected generic type.
+  const updateData = decipher.update(piccEncData) as unknown as Buffer;
+  const finalData = decipher.final() as unknown as Buffer;
+  const plaintext = Buffer.concat([updateData, finalData]);
   
   let offset = 0;
   const piccDataTag = plaintext.slice(offset, offset + 1);
