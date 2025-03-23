@@ -80,9 +80,9 @@ export async function GET(request) {
 
     // sdmFileReadKeyCallable: use diversified mode if requested.
     const sdmFileReadKeyCallable = diversified
-      ? (uid) => deriveTagKey(sdmMetaReadKey, uid, 0)
-      : (uid) => sdmMetaReadKey;
-    const paramMode = "SEPARATED";
+    ? (uid) => deriveTagKey(sdmMetaReadKey, uid, 0)
+    : () => sdmMetaReadKey;
+        const paramMode = "SEPARATED";
 
     // Call decryptNfcMessage with parameters in the correct order.
     const result = decryptNfcMessage(

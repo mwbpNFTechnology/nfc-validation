@@ -1,7 +1,7 @@
 import { setCorsHeaders } from '../../../lib/utils/cors';
 import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
 import { decryptText } from '../../../lib/utils/kmsUtils';
-import { PROTOTYPE_KEY_COLLECTION_NAME, ENC_FIELD } from '../../../lib/utils/keyNames';
+import { PROTOTYPE_KEY_COLLECTION_NAME } from '../../../lib/utils/keyNames';
 
 const firestore = getFirestoreInstance();
 
