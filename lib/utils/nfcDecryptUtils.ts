@@ -58,7 +58,7 @@ export function deriveTagKey(masterKey: Buffer, uid: Buffer, keyNo: number = 0):
   const firstHmac = hmacSha256(masterKey, Buffer.concat([DIV_CONST2, Buffer.from([keyNo])]));
   const innerHmac = hmacSha256(masterKey, DIV_CONST3, true);
   const cmacInput = Buffer.concat([Buffer.from([0x01]), hmacSha256(innerHmac, uid)]);
-  const tagKey = Buffer.from(aesCmac(firstHmac, cmacInput), 'hex');
+  const tagKey = Buffer.from(aesCmac(firstHmac, cmacInput).toString(), 'hex');
   return tagKey;
 }
 
@@ -90,8 +90,9 @@ export function calculateSdmmac(
   const sv2Header = Buffer.from([0x3C, 0xC3, 0x00, 0x01, 0x00, 0x80]);
   let sv2Stream = Buffer.concat([sv2Header, piccData]);
   sv2Stream = padBuffer(sv2Stream);
-  const c2 = Buffer.from(aesCmac(sdmFileReadKey, sv2Stream), 'hex');
-  const sdmmacTmp = Buffer.from(aesCmac(c2, inputBuf), 'hex');
+  // Convert the result of aesCmac to a string before passing to Buffer.from to fix type issues
+  const c2 = Buffer.from(aesCmac(sdmFileReadKey, sv2Stream).toString(), 'hex');
+  const sdmmacTmp = Buffer.from(aesCmac(c2, inputBuf).toString(), 'hex');
   const macDigest: number[] = [];
   for (let i = 0; i < 16; i++) {
     if (i % 2 === 1) {
@@ -118,7 +119,7 @@ export function decryptFileData(
   const sv1Header = Buffer.from([0xC3, 0x3C, 0x00, 0x01, 0x00, 0x80]);
   let sv1Stream = Buffer.concat([sv1Header, piccData]);
   sv1Stream = padBuffer(sv1Stream);
-  const kSesSdmFileReadEnc = Buffer.from(aesCmac(sdmFileReadKey, sv1Stream), 'hex');
+  const kSesSdmFileReadEnc = Buffer.from(aesCmac(sdmFileReadKey, sv1Stream).toString(), 'hex');
   const ivPlain = Buffer.concat([readCtr, Buffer.alloc(13, 0x00)]);
   const ecbCipher = createCipheriv("aes-128-ecb", kSesSdmFileReadEnc, null);
   ecbCipher.setAutoPadding(false);
