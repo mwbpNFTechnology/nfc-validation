@@ -1,7 +1,7 @@
 import { setCorsHeaders } from '../../../lib/utils/cors';
 import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
 import { decryptText } from '../../../lib/utils/kmsUtils';
-import { PROTOTYPE_KEY_COLLECTION_NAME } from '../../../lib/utils/keyNames';
+import { PROTOTYPE_KEY_COLLECTION_FIREBASE } from '../../../lib/utils/keyNames';
 
 const firestore = getFirestoreInstance();
 
@@ -28,7 +28,7 @@ export async function GET(request) {
     }
 
     // Retrieve document from Firestore at path: test/{path}
-    const docRef = firestore.doc(`${PROTOTYPE_KEY_COLLECTION_NAME}/${uid}`);
+    const docRef = firestore.doc(`${PROTOTYPE_KEY_COLLECTION_FIREBASE}/${uid}`);
     const docSnapshot = await docRef.get();
     if (!docSnapshot.exists) {
       return errorResponse("Document not found", 404);

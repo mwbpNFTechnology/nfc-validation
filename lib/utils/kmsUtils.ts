@@ -42,7 +42,7 @@ export async function encryptText(rawText: string): Promise<string> {
  * @param {string} encryptedText - The base64 encoded encrypted text.
  * @returns {Promise<string>} - The decrypted plaintext.
  */
- export async function decryptText(encryptedText: string): Promise<string> {
+export async function decryptText(encryptedText: string): Promise<string> {
   // Convert base64 string back to a Buffer.
   const ciphertextBlob = Buffer.from(encryptedText, 'base64');
 
@@ -61,7 +61,6 @@ export async function encryptText(rawText: string): Promise<string> {
   // This assumes the decrypted JSON has the structure: { "message": "...", "nonce": "..." }
   const parsedPayload = JSON.parse(decryptedString);
   return parsedPayload;
-
 }
 
 /**
@@ -86,7 +85,7 @@ export function generateNonce(length: number = 16): string {
  *   "nonce": <generatedNonce>
  * }
  *
- * @param {string} uuid - The unique identifier.
+ * @param {string} uid - The unique identifier.
  * @param {string} ctr - The ctr value.
  * @param {string} aes128 - The aes128 value.
  * @param {string} mint - The mint value.
@@ -114,9 +113,9 @@ export async function createEncryptedKeyData(uid: string, ctr: string, aes128: s
 /**
  * Decrypts a base64-encoded ciphertext using AWS KMS and returns the full JSON object.
  * @param {string} encryptedText - The base64 encoded encrypted text.
- * @returns {Promise<any>} - The full decrypted JSON object.
+ * @returns {Promise<Record<string, unknown>>} - The full decrypted JSON object.
  */
- export async function decryptKeyData(encryptedText: string): Promise<any> {
+export async function decryptKeyData(encryptedText: string): Promise<Record<string, unknown>> {
   const ciphertextBlob = Buffer.from(encryptedText, 'base64');
   const decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
   const decryptResult = await kmsClient.send(decryptCommand);
