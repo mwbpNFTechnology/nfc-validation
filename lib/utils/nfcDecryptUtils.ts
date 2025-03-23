@@ -130,7 +130,7 @@ export function decryptFileData(
  * This helps resolve type issues with cipher output.
  */
  function toProperBuffer(buf: Buffer): Buffer {
-  return Buffer.from(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+  return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength) as Buffer;
 }
 
 /* --- Interface for the Decrypted Message --- */
