@@ -80,8 +80,8 @@ export function calculateSdmmac(
   const sv2Header = Buffer.from([0x3C, 0xC3, 0x00, 0x01, 0x00, 0x80]);
   let sv2Stream = Buffer.concat([sv2Header, piccData]);
   sv2Stream = padBuffer(sv2Stream);
-  const c2 = Buffer.from(aesCmac(sdmFileReadKey, sv2Stream), 'hex');
-  const sdmmacTmp = Buffer.from(aesCmac(c2, inputBuf), 'hex');
+  const c2 = Buffer.from(aesCmac(sdmFileReadKey, sv2Stream), 'hex') as Buffer;
+  const sdmmacTmp = Buffer.from(aesCmac(c2, inputBuf), 'hex') as Buffer;
   const macDigest: number[] = [];
   for (let i = 0; i < 16; i++) {
     if (i % 2 === 1) {
