@@ -19,6 +19,7 @@ const firestore = getFirestoreInstance();
 // Next.js API Route handler.
 export async function GET(request) {
   try {
+    console.log("hello!!");
     const { searchParams } = new URL(request.url);
     const picc_data = searchParams.get("picc_data");
     const enc = searchParams.get("enc");
