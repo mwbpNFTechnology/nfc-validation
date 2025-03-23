@@ -1,9 +1,18 @@
 import { createDecipheriv, createCipheriv, createHmac } from 'crypto';
 import { aesCmac } from 'node-aes-cmac';
 
+/* --- Conversion Helper --- */
+/**
+ * Converts a Node.js Buffer (typed as Buffer<ArrayBufferLike>) into one typed as Buffer<ArrayBuffer>.
+ */
+function toABuffer(buf: Buffer): Buffer<ArrayBuffer> {
+  const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  return Buffer.from(ab);
+}
+
 /* --- Constants --- */
-const DIV_CONST2 = Buffer.from("536c6F744D61737465724B6579", "hex");
-const DIV_CONST3 = Buffer.from("446976426173654B6579", "hex");
+const DIV_CONST2 = toABuffer(Buffer.from("536c6F744D61737465724B6579", "hex"));
+const DIV_CONST3 = toABuffer(Buffer.from("446976426173654B6579", "hex"));
 
 const SDMMAC_PARAM = "cmac";
 const AES_BLOCK_SIZE = 16;
@@ -23,13 +32,14 @@ interface DecryptedSunMessage {
 /**
  * Pads a Buffer to a multiple of the AES block size (16 bytes) if needed.
  * @param buf The input Buffer.
- * @returns The padded Buffer.
+ * @returns The padded Buffer typed as Buffer<ArrayBuffer>.
  */
-export function padBuffer(buf: Buffer): Buffer {
+export function padBuffer(buf: Buffer): Buffer<ArrayBuffer> {
   const remainder = buf.length % AES_BLOCK_SIZE;
-  if (remainder === 0) return buf;
+  if (remainder === 0) return toABuffer(buf);
   const padLen = AES_BLOCK_SIZE - remainder;
-  return Buffer.concat([buf, Buffer.alloc(padLen, 0x00)]);
+  const padded = Buffer.concat([buf, Buffer.alloc(padLen, 0x00)]);
+  return toABuffer(padded);
 }
 
 /**
@@ -37,13 +47,13 @@ export function padBuffer(buf: Buffer): Buffer {
  * @param key The key as a Buffer.
  * @param msg The message as a Buffer.
  * @param noTrunc If true, returns the full digest; otherwise returns the first 16 bytes.
- * @returns The digest as a Buffer.
+ * @returns The digest as a Buffer typed as Buffer<ArrayBuffer>.
  */
-export function hmacSha256(key: Buffer, msg: Buffer, noTrunc: boolean = false): Buffer {
+export function hmacSha256(key: Buffer, msg: Buffer, noTrunc: boolean = false): Buffer<ArrayBuffer> {
   const hmac = createHmac("sha256", key);
   hmac.update(msg);
   const digest = hmac.digest();
-  return noTrunc ? digest : digest.slice(0, 16);
+  return toABuffer(noTrunc ? digest : digest.slice(0, 16));
 }
 
 /**
@@ -51,18 +61,18 @@ export function hmacSha256(key: Buffer, msg: Buffer, noTrunc: boolean = false): 
  * @param masterKey The master key as a Buffer.
  * @param uid The UID as a Buffer.
  * @param keyNo Optional key number (default is 0).
- * @returns The derived tag key as a Buffer.
+ * @returns The derived tag key as a Buffer typed as Buffer<ArrayBuffer>.
  */
-export function deriveTagKey(masterKey: Buffer, uid: Buffer, keyNo: number = 0): Buffer {
-  if (masterKey.equals(Buffer.alloc(16, 0))) return Buffer.alloc(16, 0);
-  const firstHmac = hmacSha256(masterKey, Buffer.concat([DIV_CONST2, Buffer.from([keyNo])]));
+export function deriveTagKey(masterKey: Buffer, uid: Buffer, keyNo: number = 0): Buffer<ArrayBuffer> {
+  if (masterKey.equals(Buffer.alloc(16, 0))) return toABuffer(Buffer.alloc(16, 0));
+  const firstHmac = hmacSha256(masterKey, Buffer.concat([masterKey, Buffer.from([keyNo])]));
   const innerHmac = hmacSha256(masterKey, DIV_CONST3, true);
   const cmacInput = Buffer.concat([Buffer.from([0x01]), hmacSha256(innerHmac, uid)]);
-  // Convert result to hex string then back to Buffer to ensure correct type
-  const tagKeyHex = typeof aesCmac(firstHmac, cmacInput) === "string"
-    ? aesCmac(firstHmac, cmacInput)
-    : aesCmac(firstHmac, cmacInput).toString();
-  return Buffer.from(tagKeyHex, 'hex');
+  const aesCmacResult = aesCmac(firstHmac, cmacInput);
+  const tagKeyHex: string = typeof aesCmacResult === "string"
+    ? aesCmacResult
+    : aesCmacResult.toString();
+  return toABuffer(Buffer.from(tagKeyHex, 'hex'));
 }
 
 /**
@@ -71,14 +81,14 @@ export function deriveTagKey(masterKey: Buffer, uid: Buffer, keyNo: number = 0):
  * @param sdmFileReadKey The file read key as a Buffer.
  * @param piccData The PICC data as a Buffer.
  * @param encFileData Optional encrypted file data as a Buffer.
- * @returns The calculated MAC as a Buffer.
+ * @returns The calculated MAC as a Buffer typed as Buffer<ArrayBuffer>.
  */
 export function calculateSdmmac(
   paramMode: string,
   sdmFileReadKey: Buffer,
   piccData: Buffer,
   encFileData: Buffer | null = null
-): Buffer {
+): Buffer<ArrayBuffer> {
   let inputBuf: Buffer;
   if (encFileData) {
     let sdmmacParamText = `&${SDMMAC_PARAM}=`;
@@ -92,9 +102,9 @@ export function calculateSdmmac(
   }
   const sv2Header = Buffer.from([0x3C, 0xC3, 0x00, 0x01, 0x00, 0x80]);
   let sv2Stream = Buffer.concat([sv2Header, piccData]);
-  sv2Stream = padBuffer(sv2Stream);
+  console.log("sv2Header type: ", typeof sv2Header);
+  sv2Stream = toABuffer(padBuffer(sv2Stream));
 
-  // Convert the output of aesCmac to a hex string before converting back to Buffer.
   const aesCmacResult1 = aesCmac(sdmFileReadKey, sv2Stream);
   const c2Hex: string = typeof aesCmacResult1 === 'string'
     ? aesCmacResult1
@@ -113,7 +123,7 @@ export function calculateSdmmac(
       macDigest.push(sdmmacTmp[i]);
     }
   }
-  return Buffer.from(macDigest);
+  return toABuffer(Buffer.from(macDigest));
 }
 
 /**
@@ -122,17 +132,17 @@ export function calculateSdmmac(
  * @param piccData The PICC data as a Buffer.
  * @param readCtr The read counter as a Buffer.
  * @param encFileData The encrypted file data as a Buffer.
- * @returns The decrypted file data as a Buffer.
+ * @returns The decrypted file data as a Buffer typed as Buffer<ArrayBuffer>.
  */
 export function decryptFileData(
   sdmFileReadKey: Buffer,
   piccData: Buffer,
   readCtr: Buffer,
   encFileData: Buffer
-): Buffer {
+): Buffer<ArrayBuffer> {
   const sv1Header = Buffer.from([0xC3, 0x3C, 0x00, 0x01, 0x00, 0x80]);
   let sv1Stream = Buffer.concat([sv1Header, piccData]);
-  sv1Stream = padBuffer(sv1Stream);
+  sv1Stream = toABuffer(padBuffer(sv1Stream));
   const aesCmacResult = aesCmac(sdmFileReadKey, sv1Stream);
   const kSesSdmFileReadEncHex: string = typeof aesCmacResult === 'string'
     ? aesCmacResult
@@ -146,7 +156,7 @@ export function decryptFileData(
   const decipher = createDecipheriv("aes-128-cbc", kSesSdmFileReadEnc, ive);
   decipher.setAutoPadding(false);
   const decrypted = Buffer.concat([decipher.update(encFileData), decipher.final()]);
-  return decrypted;
+  return toABuffer(decrypted);
 }
 
 /**
