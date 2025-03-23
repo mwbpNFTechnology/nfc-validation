@@ -112,10 +112,16 @@ export function decryptFileData(
   const ivPlain = Buffer.concat([readCtr, Buffer.alloc(13, 0x00)]);
   const ecbCipher = createCipheriv("aes-128-ecb", kSesSdmFileReadEnc, null);
   ecbCipher.setAutoPadding(false);
-  const ive = Buffer.concat([ecbCipher.update(ivPlain), ecbCipher.final()]).slice(0, 16);
+  const ive = Buffer.concat([
+    ecbCipher.update(ivPlain) as Buffer,
+    ecbCipher.final() as Buffer
+  ]).slice(0, 16);
   const decipher = createDecipheriv("aes-128-cbc", kSesSdmFileReadEnc, ive);
   decipher.setAutoPadding(false);
-  const decrypted = Buffer.concat([decipher.update(encFileData), decipher.final()]);
+  const decrypted = Buffer.concat([
+    decipher.update(encFileData) as Buffer,
+    decipher.final() as Buffer
+  ]);
   return decrypted;
 }
 
@@ -150,7 +156,10 @@ export function decryptSunMessage(
   const ivZero = Buffer.alloc(16, 0x00);
   const decipher = createDecipheriv("aes-128-cbc", sdmMetaReadKey, ivZero);
   decipher.setAutoPadding(false);
-  const plaintext = Buffer.concat([decipher.update(piccEncData), decipher.final()]);
+  const plaintext = Buffer.concat([
+    decipher.update(piccEncData) as Buffer,
+    decipher.final() as Buffer
+  ]);
   
   let offset = 0;
   const piccDataTag = plaintext.slice(offset, offset + 1);
