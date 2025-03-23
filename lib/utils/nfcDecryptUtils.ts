@@ -105,7 +105,6 @@ export function calculateSdmmac(
   }
   const sv2Header = Buffer.from([0x3C, 0xC3, 0x00, 0x01, 0x00, 0x80]);
   let sv2Stream = Buffer.concat([sv2Header, piccData]);
-  console.log("sv2Header type: ", typeof sv2Header);
   sv2Stream = toABuffer(padBuffer(sv2Stream));
 
   const aesCmacResult1 = aesCmac(sdmFileReadKey, sv2Stream);

@@ -19,7 +19,6 @@ const firestore = getFirestoreInstance();
 // Next.js API Route handler.
 export async function GET(request) {
   try {
-    console.log("hello!!");
     const { searchParams } = new URL(request.url);
     const picc_data = searchParams.get("picc_data");
     const enc = searchParams.get("enc");
@@ -48,12 +47,10 @@ export async function GET(request) {
       );
     }
     const keyDocData = keyDocSnapshot.data();
-    console.log("keyDocData: ", keyDocData);
     const encryptedKeyData = keyDocData[ENC_FIELD_FIREBASE];
 
 
 
-    console.log("encryptedKeyData: ", encryptedKeyData);
     if (!encryptedKeyData) {
       return new Response(
         JSON.stringify({ error: "Encrypted key data not found in document" }),
@@ -70,7 +67,6 @@ export async function GET(request) {
     const ctrStringFirebase = decryptedKeyJson[CTR_ENC_JSON_KEY];
     const ctrNumberFirebse = Number(ctrStringFirebase);
 
-    console.log("metaKeyString: ", metaKeyStringFirebase, "ctrNumberFirebse: ", ctrNumberFirebse);
     if (!metaKeyStringFirebase) {
       return new Response(
         JSON.stringify({ error: "AES128 key not found in decrypted key data" }),
@@ -96,7 +92,6 @@ export async function GET(request) {
     );
 
     const ctrNFC = result.readCtr;
-    console.log("ctrNFC: ", ctrNFC);
     const uidNFC = result.uid.toUpperCase();
 
 
