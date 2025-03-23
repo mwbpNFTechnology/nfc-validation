@@ -129,8 +129,8 @@ export function decryptFileData(
  * Helper to convert a Buffer into a new Buffer with proper generic type.
  * This helps resolve type issues with cipher output.
  */
-function toProperBuffer(buf: Buffer): Buffer {
-  return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength);
+ function toProperBuffer(buf: Buffer): Buffer {
+  return Buffer.from(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
 }
 
 /* --- Interface for the Decrypted Message --- */
