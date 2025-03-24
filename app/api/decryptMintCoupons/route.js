@@ -3,7 +3,7 @@ import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
 import admin from 'firebase-admin';
 import { decryptTextPlain } from '../../../lib/utils/kmsUtils';
 import { 
-  MINT_COUPONS,
+  MINT_COUPONS_COLLECTION_FIREBASE,
   COUPONS_DOC_FIREBASE 
 } from '../../../lib/utils/keyNames';
 
@@ -26,7 +26,7 @@ export async function OPTIONS() {
 export async function GET() {
   try {
     // Retrieve the document from Firebase at "mint_coupons/coupons"
-    const docRef = firestore.doc(`${MINT_COUPONS}/${COUPONS_DOC_FIREBASE}`);
+    const docRef = firestore.doc(`${MINT_COUPONS_COLLECTION_FIREBASE}/${COUPONS_DOC_FIREBASE}`);
     const docSnapshot = await docRef.get();
     if (!docSnapshot.exists) {
       return errorResponse('Document not found', 404);
