@@ -1,6 +1,5 @@
 import { setCorsHeaders } from '../../../lib/utils/cors';
 import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
-import admin from 'firebase-admin';
 import { decryptTextPlain } from '../../../lib/utils/kmsUtils';
 import { 
   MINT_COUPONS_COLLECTION_FIREBASE,

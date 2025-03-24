@@ -140,42 +140,53 @@ export async function decryptKeyData(encryptedText: string): Promise<Record<stri
   return payload.coupons;
 }
 
+interface MintEntry {
+  mint: string;
+  // other properties can be defined here if necessary
+}
+
 /**
- * Reads a JSON file, extracts all "mint" values, concatenates them into a comma-separated string,
- * creates a JSON payload with that string and a generated nonce, and encrypts the payload using AWS KMS.
- *
- * The resulting JSON payload looks like:
- * {
- *   "coupons": "da0d5780a07cbb15262db111d8bf97_1,a722dbf730937648cab2f8977f37f8_2,3a192b7a67c4342d3e65f95f49c4dd_3",
- *   "nonce": "generatedNonceValue"
- * }
+ * Reads a JSON file, extracts all "mint" values,
+ * concatenates them into a comma-separated string,
+ * creates a JSON payload with that string and a generated nonce,
+ * and encrypts the payload using AWS KMS.
  *
  * @param {string} filePath - The path to the JSON file.
  * @returns {Promise<string>} - The encrypted ciphertext in base64 encoding.
  */
- export async function encryptMintsFromJSON(filePath: string): Promise<string> {
+export async function encryptMintsFromJSON(filePath: string): Promise<string> {
   // Read the file content as a UTF-8 string.
   const fileContents = fs.readFileSync(filePath, 'utf8');
   // Parse the JSON content.
   const data = JSON.parse(fileContents);
-  
+
+  // Type guard to ensure an entry is a MintEntry
+  const isMintEntry = (entry: unknown): entry is MintEntry => {
+    return (
+      typeof entry === 'object' &&
+      entry !== null &&
+      'mint' in entry &&
+      typeof (entry as { mint: unknown }).mint === 'string'
+    );
+  };
+
   // Extract only the "mint" fields.
   const mints = Object.values(data)
-    .filter((entry: any) => entry.mint)
-    .map((entry: any) => entry.mint);
-  
+    .filter(isMintEntry)
+    .map(entry => entry.mint);
+
   // Join the mint values with commas.
   const mintsString = mints.join(',');
-  
+
   // Generate a nonce.
   const nonce = generateNonce();
-  
+
   // Create a JSON payload with the coupons and nonce.
   const payload = JSON.stringify({
     coupons: mintsString,
-    nonce: nonce
+    nonce: nonce,
   });
-  
+
   // Encrypt the JSON payload using AWS KMS.
   return await encryptText(payload);
 }
