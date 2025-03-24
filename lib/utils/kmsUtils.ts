@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
+import fs from 'fs';
 import {
   UID_ENC_JSON_KEY,
   CTR_ENC_JSON_KEY,
@@ -54,7 +55,6 @@ export async function decryptText(encryptedText: string): Promise<string> {
 
   // Convert the decrypted Buffer to a UTF-8 string.
   const decryptedString = Buffer.from(decryptResult.Plaintext!).toString('utf8');
-
 
   // Parse the JSON payload and return the "message" field.
   // This assumes the decrypted JSON has the structure: { "message": "...", "nonce": "..." }
@@ -120,4 +120,62 @@ export async function decryptKeyData(encryptedText: string): Promise<Record<stri
   const decryptResult = await kmsClient.send(decryptCommand);
   const decryptedString = Buffer.from(decryptResult.Plaintext!).toString('utf8');
   return JSON.parse(decryptedString);
+}
+
+/**
+ * Decrypts a base64-encoded ciphertext using AWS KMS, parses the resulting JSON payload,
+ * and returns the "coupons" field (the comma-separated mint values).
+ * @param {string} encryptedText - The base64 encoded encrypted text.
+ * @returns {Promise<string>} - The decrypted "coupons" string.
+ */
+ export async function decryptTextPlain(encryptedText: string): Promise<string> {
+  const ciphertextBlob = Buffer.from(encryptedText, 'base64');
+  const decryptCommand = new DecryptCommand({ CiphertextBlob: ciphertextBlob });
+  const decryptResult = await kmsClient.send(decryptCommand);
+  // Convert the decrypted Buffer to a UTF-8 string.
+  const decryptedString = Buffer.from(decryptResult.Plaintext!).toString('utf8');
+  
+  // Parse the JSON payload and return the "coupons" field.
+  const payload = JSON.parse(decryptedString);
+  return payload.coupons;
+}
+
+/**
+ * Reads a JSON file, extracts all "mint" values, concatenates them into a comma-separated string,
+ * creates a JSON payload with that string and a generated nonce, and encrypts the payload using AWS KMS.
+ *
+ * The resulting JSON payload looks like:
+ * {
+ *   "coupons": "da0d5780a07cbb15262db111d8bf97_1,a722dbf730937648cab2f8977f37f8_2,3a192b7a67c4342d3e65f95f49c4dd_3",
+ *   "nonce": "generatedNonceValue"
+ * }
+ *
+ * @param {string} filePath - The path to the JSON file.
+ * @returns {Promise<string>} - The encrypted ciphertext in base64 encoding.
+ */
+ export async function encryptMintsFromJSON(filePath: string): Promise<string> {
+  // Read the file content as a UTF-8 string.
+  const fileContents = fs.readFileSync(filePath, 'utf8');
+  // Parse the JSON content.
+  const data = JSON.parse(fileContents);
+  
+  // Extract only the "mint" fields.
+  const mints = Object.values(data)
+    .filter((entry: any) => entry.mint)
+    .map((entry: any) => entry.mint);
+  
+  // Join the mint values with commas.
+  const mintsString = mints.join(',');
+  
+  // Generate a nonce.
+  const nonce = generateNonce();
+  
+  // Create a JSON payload with the coupons and nonce.
+  const payload = JSON.stringify({
+    coupons: mintsString,
+    nonce: nonce
+  });
+  
+  // Encrypt the JSON payload using AWS KMS.
+  return await encryptText(payload);
 }
