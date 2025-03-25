@@ -1,5 +1,5 @@
 import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
-import { extractMintNumber } from '../../../lib/utils/utilsFuncs.ts';
+import { extractMintNumber } from '../../../lib/utils/utilsFuncs';
 import { 
   PROTOTYPE_KEY_COLLECTION_FIREBASE, 
   ENC_FIELD_FIREBASE, 
@@ -11,9 +11,10 @@ import { decryptText, createEncryptedKeyData } from '../../../lib/utils/kmsUtils
 import { decryptNfcMessage, deriveTagKey } from '../../../lib/utils/nfcDecryptUtils';
 import { setCorsHeaders } from '../../../lib/utils/cors';
 import admin from 'firebase-admin';
-import { extractMintNumber } from '../../../lib/utils/utilsFuncs';
 import { ethers } from 'ethers';
- import { getContractAddress, CONTRACT_ABI, SELECTED_NETWORK } from '../../../config/contractConfig';
+import { getContractAddress, CONTRACT_ABI, SELECTED_NETWORK } from '../../../config/contractConfig';
+
+
 
 const firestore = getFirestoreInstance();
 
@@ -70,6 +71,7 @@ export async function GET(request) {
     const mintStringFirebase = decryptedKeyJson[MINT_ENC_JSON_KEY];
     const ctrStringFirebase = decryptedKeyJson[CTR_ENC_JSON_KEY];
     const ctrNumberFirebse = Number(ctrStringFirebase);
+    
 
     if (!metaKeyStringFirebase) {
       return setCorsHeaders(new Response(
@@ -98,13 +100,16 @@ export async function GET(request) {
     const ctrNFC = result.readCtr;
     const uidNFC = result.uid.toUpperCase();
 
+    const nftID = extractMintNumber(mintStringFirebase);
+    console.log("nftID: ", nftID);
+
+
     // Set up an ethers provider for the selected network.
     const provider = ethers.getDefaultProvider(SELECTED_NETWORK);
     const contractAddress = getContractAddress();
     const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, provider);
 
     // Check if the NFT is minted by calling ownerOf.
-    const nftID = extractMintNumber(mintStringFirebase);
     let ownerAddress = "";
     try {
       ownerAddress = await contract.ownerOf(nftID);
@@ -114,7 +119,6 @@ export async function GET(request) {
       console.log("ownerOf call failed, assuming token not minted:", ownerError.message);
       ownerAddress = "0x000000000000000000000000000000000000";
     }
-    
 
     if (ctrNFC > ctrNumberFirebse) {
       // Update Firestore with the new counter value.
@@ -127,7 +131,7 @@ export async function GET(request) {
       });
 
       return setCorsHeaders(new Response(
-        JSON.stringify({ authenticated: true, mint: mintStringFirebase, nftOwner: ownerAddress }),
+        JSON.stringify({ authenticated: true, mint: mintStringFirebase, nftOwner: ownerAddress}),
         { headers: { "Content-Type": "application/json" } }
       ));
     } else {
