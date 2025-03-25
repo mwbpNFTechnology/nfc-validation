@@ -1,5 +1,6 @@
 import { setCorsHeaders } from '../../../lib/utils/cors';
 import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
+import admin from 'firebase-admin';
 import { decryptTextPlain } from '../../../lib/utils/kmsUtils';
 import { keccak256 } from 'js-sha3';
 import { Buffer } from 'buffer'; // may be needed for Node environments
@@ -152,16 +153,15 @@ export async function GET(request) {
     mintArray.forEach(mint => tree.addCoupon(mint));
     
     const merkleRoot = tree.getMerkleRoot();
-    // Get the Merkle proof for the provided coupon.
+    // Get the Merkle proof for the provided coupon as an array.
     const proof = tree.getMerkleProof(couponQuery);
-    const proofString = proof ? '[' + proof.join(',') + ']' : 'Proof not available';
-
+    
     const responseBody = {
       message: 'Decrypted and built Merkle tree successfully',
       data: {
         coupon: couponQuery,
         merkleRoot,
-        merkleProof: proofString,
+        merkleProof: proof, // returned as an array
       },
     };
     
