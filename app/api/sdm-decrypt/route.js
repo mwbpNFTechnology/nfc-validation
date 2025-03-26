@@ -122,13 +122,13 @@ export async function GET(request) {
 
     if (ctrNFC > ctrNumberFirebse) {
       // Update Firestore with the new counter value.
-      const encrypted = await createEncryptedKeyData(uidNFC, String(ctrNFC), metaKeyStringFirebase, mintStringFirebase);
+      // const encrypted = await createEncryptedKeyData(uidNFC, String(ctrNFC), metaKeyStringFirebase, mintStringFirebase);
       
-      const docRef = firestore.doc(`${PROTOTYPE_KEY_COLLECTION_FIREBASE}/${uidNFC}`);
-      await docRef.set({
-        [ENC_FIELD_FIREBASE]: encrypted,
-        lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      // const docRef = firestore.doc(`${PROTOTYPE_KEY_COLLECTION_FIREBASE}/${uidNFC}`);
+      // await docRef.set({
+      //   [ENC_FIELD_FIREBASE]: encrypted,
+      //   lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      // });
 
       return setCorsHeaders(new Response(
         JSON.stringify({ authenticated: true, mint: mintStringFirebase, nftOwner: ownerAddress}),
