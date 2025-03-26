@@ -7,10 +7,12 @@ import {
   CTR_ENC_JSON_KEY, 
   MINT_ENC_JSON_KEY 
 } from '../../../lib/utils/keyNames';
-import { decryptText, createEncryptedKeyData } from '../../../lib/utils/kmsUtils';
+// import { decryptText, createEncryptedKeyData } from '../../../lib/utils/kmsUtils';
+
+import { decryptText } from '../../../lib/utils/kmsUtils';
 import { decryptNfcMessage, deriveTagKey } from '../../../lib/utils/nfcDecryptUtils';
 import { setCorsHeaders } from '../../../lib/utils/cors';
-import admin from 'firebase-admin';
+// import admin from 'firebase-admin';
 import { ethers } from 'ethers';
 import { getContractAddress, CONTRACT_ABI, SELECTED_NETWORK } from '../../../config/contractConfig';
 
@@ -98,7 +100,7 @@ export async function GET(request) {
     );
 
     const ctrNFC = result.readCtr;
-    const uidNFC = result.uid.toUpperCase();
+    // const uidNFC = result.uid.toUpperCase();
 
     const nftID = extractMintNumber(mintStringFirebase);
     console.log("nftID: ", nftID);
