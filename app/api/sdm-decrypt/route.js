@@ -101,7 +101,7 @@ export async function GET(request) {
     );
 
     const ctrNFC = result.readCtr;
-    const uidNFC = result.uid.toUpperCase();
+    // const uidNFC = result.uid.toUpperCase();
 
     const nftID = extractMintNumber(mintStringFirebase);
     console.log("nftID: ", nftID);
