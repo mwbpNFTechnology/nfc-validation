@@ -17,13 +17,11 @@ import { setCorsHeaders } from '../../../lib/utils/cors';
 import { ethers } from 'ethers';
 import { getContractAddress, CONTRACT_ABI, SELECTED_NETWORK } from '../../../config/contractConfig';
 
-
-
 const firestore = getFirestoreInstance();
 
 // Next.js API Route handler.
 export async function GET(request) {
-  // Handle OPTIONS preflight request
+  // Handle OPTIONS preflight request.
   if (request.method === "OPTIONS") {
     return setCorsHeaders(new Response(null, { status: 204 }));
   }
@@ -34,14 +32,12 @@ export async function GET(request) {
     const enc = searchParams.get("enc");
     const cmac = searchParams.get("cmac");
     const uidParam = searchParams.get("uid");
-    // Removed metaKey from query.
     const diversified = searchParams.get("diversified") === "true";
 
     if (!picc_data || !enc || !cmac || !uidParam) {
       return setCorsHeaders(new Response(
         JSON.stringify({
-          error:
-            "Missing required query parameters: picc_data, enc, cmac, and uid"
+          error: "Missing required query parameters: picc_data, enc, cmac, and uid"
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       ));
@@ -75,7 +71,6 @@ export async function GET(request) {
     const ctrStringFirebase = decryptedKeyJson[CTR_ENC_JSON_KEY];
     const ctrNumberFirebse = Number(ctrStringFirebase);
     
-
     if (!metaKeyStringFirebase) {
       return setCorsHeaders(new Response(
         JSON.stringify({ error: "AES128 key not found in decrypted key data" }),
@@ -101,32 +96,36 @@ export async function GET(request) {
     );
 
     const ctrNFC = result.readCtr;
-    // const uidNFC = result.uid.toUpperCase();
-
     const nftID = extractMintNumber(mintStringFirebase);
     console.log("nftID: ", nftID);
-
 
     // Set up an ethers provider for the selected network.
     const provider = ethers.getDefaultProvider(SELECTED_NETWORK);
     const contractAddress = getContractAddress();
     const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, provider);
 
-    // Check if the NFT is minted by calling ownerOf.
+    // Retrieve the NFT owner using ownerOf.
     let ownerAddress = "";
     try {
       ownerAddress = await contract.ownerOf(nftID);
-      // If ownerAddress is not the zero address, token is minted.
     } catch (ownerError) {
-      // If the call fails (likely token not minted), set ownerAddress to default.
       console.log("ownerOf call failed, assuming token not minted:", ownerError.message);
       ownerAddress = "0x000000000000000000000000000000000000";
     }
 
+    // Retrieve the contract owner.
+    let contractOwner = "";
+    try {
+      contractOwner = await contract.owner();
+    } catch (contractOwnerError) {
+      console.log("contract.owner() call failed:", contractOwnerError.message);
+      contractOwner = "unknown";
+    }
+
     if (ctrNFC > ctrNumberFirebse) {
-      // Update Firestore with the new counter value.
+      // Update Firestore with the new counter value if necessary.
+      // For example:
       // const encrypted = await createEncryptedKeyData(uidNFC, String(ctrNFC), metaKeyStringFirebase, mintStringFirebase);
-      
       // const docRef = firestore.doc(`${PROTOTYPE_KEY_COLLECTION_FIREBASE}/${uidNFC}`);
       // await docRef.set({
       //   [ENC_FIELD_FIREBASE]: encrypted,
@@ -134,7 +133,12 @@ export async function GET(request) {
       // });
 
       return setCorsHeaders(new Response(
-        JSON.stringify({ authenticated: true, mint: mintStringFirebase, nftOwner: ownerAddress}),
+        JSON.stringify({ 
+          authenticated: true, 
+          mint: mintStringFirebase, 
+          nftOwner: ownerAddress,
+          contractOwner: contractOwner
+        }),
         { headers: { "Content-Type": "application/json" } }
       ));
     } else {
