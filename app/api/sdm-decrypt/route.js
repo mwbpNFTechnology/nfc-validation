@@ -122,6 +122,20 @@ export async function GET(request) {
       contractOwner = "unknown";
     }
 
+    // Initialize seperate flag value.
+    let seperate = null;
+    // If the NFT owner is valid (i.e. token is minted), call productsList to get the 'seperate' field.
+    if (ownerAddress !== "0x000000000000000000000000000000000000") {
+      try {
+        // Adjust the parameter if your productsList function requires a different argument.
+        const product = await contract.productsList(nftID);
+        seperate = product.seperate;
+      } catch (productError) {
+        console.log("productsList call failed:", productError.message);
+        seperate = null;
+      }
+    }
+
     if (ctrNFC > ctrNumberFirebse) {
       // Update Firestore with the new counter value if necessary.
       // For example:
@@ -137,7 +151,8 @@ export async function GET(request) {
           authenticated: true, 
           mint: mintStringFirebase, 
           nftOwner: ownerAddress,
-          contractOwner: contractOwner
+          contractOwner: contractOwner,
+          seperate: seperate
         }),
         { headers: { "Content-Type": "application/json" } }
       ));
