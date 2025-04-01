@@ -2,10 +2,10 @@ import { setCorsHeaders } from '../../../lib/utils/cors';
 import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
 import admin from 'firebase-admin';
 import { encryptText, generateNonce } from '../../../lib/utils/kmsUtils';
-import { 
-  MINT_COUPONS_COLLECTION_FIREBASE,
-  COUPONS_DOC_FIREBASE 
-} from '../../../lib/utils/keyNames';
+// import { 
+//   MINT_COUPONS_COLLECTION_FIREBASE,
+//   COUPONS_DOC_FIREBASE 
+// } from '../../../lib/utils/keyNames';
 
 
 function errorResponse(message, statusCode) {

@@ -3,9 +3,7 @@ import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
 import admin from 'firebase-admin';
 import { encryptText, generateNonce, createEncryptedKeyData } from '../../../lib/utils/kmsUtils';
 import { 
-  MINT_COUPONS_COLLECTION_FIREBASE,
   COUPONS_DOC_FIREBASE,
-  PROTOTYPE_KEY_COLLECTION_FIREBASE,
   ENC_FIELD_FIREBASE
 } from '../../../lib/utils/keyNames';
 

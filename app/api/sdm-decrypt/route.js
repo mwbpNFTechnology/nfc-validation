@@ -1,7 +1,6 @@
 import { getFirestoreInstance } from '../../../lib/utils/serverFirebaseUtils';
 import { extractMintNumber } from '../../../lib/utils/utilsFuncs';
 import { 
-  PROTOTYPE_KEY_COLLECTION_FIREBASE, 
   ENC_FIELD_FIREBASE, 
   AES128_ENC_JSON_KEY, 
   CTR_ENC_JSON_KEY, 
