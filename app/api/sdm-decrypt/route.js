@@ -44,7 +44,7 @@ export async function GET(request) {
     }
 
     // Fetch the encrypted key data from Firestore.
-    const keyDocRef = firestore.doc(`${PROTOTYPE_KEY_COLLECTION_FIREBASE}/${uidParam}`);
+    const keyDocRef = firestore.doc(`pathzComicPrototype/keys/keys/${uidParam}`);
     const keyDocSnapshot = await keyDocRef.get();
     if (!keyDocSnapshot.exists) {
       return setCorsHeaders(new Response(

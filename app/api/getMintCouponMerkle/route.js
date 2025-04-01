@@ -122,7 +122,7 @@ export async function GET(request) {
     }
 
     // Retrieve the document from Firebase at "mint_coupons/coupons"
-    const docRef = firestore.doc('mint_coupons/coupons');
+    const docRef = firestore.doc('pathzComicPrototype/coupons');
     const docSnapshot = await docRef.get();
     if (!docSnapshot.exists) {
       return errorResponse('Document not found', 404);

@@ -55,7 +55,7 @@ export async function POST(request) {
     
     // Save the encrypted text to Firebase under "mint_coupons/coupons".
     const firestore = getFirestoreInstance();
-    const docRef = firestore.doc(`${MINT_COUPONS_COLLECTION_FIREBASE}/${COUPONS_DOC_FIREBASE}`);
+    const docRef = firestore.doc(`pathzComicPrototype/coupons`);
     await docRef.set({
       encryptedText: encrypted,
       lastUpdateTimestamp: admin.firestore.FieldValue.serverTimestamp(),
